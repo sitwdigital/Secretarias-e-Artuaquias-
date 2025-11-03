@@ -1,39 +1,52 @@
 // src/components/common/UploadRedes.jsx
-import { useState } from 'react';
-import * as XLSX from 'xlsx';
-import processarRedes from '../../utils/processarRedes';
-import { fotoPorNome } from '../../utils/fotoCatalog';
-import { aplicarVariacoesEmTudo } from '../../shared/calcVariacao';
-import processarEngajados from '../../utils/processarEngajados';
+import { useState } from "react";
+import * as XLSX from "xlsx";
+import processarRedes from "../../utils/processarRedes";
+import { fotoPorNome } from "../../utils/fotoCatalog";
+import { aplicarVariacoesEmTudo } from "../../shared/calcVariacao";
+import { imgToBase64 } from "../../utils/imgToBase64"; // 👈 converte imagem para base64 (funciona no PDF)
 
-// ---------- helpers ----------
-const num = (v) =>
-  Number(String(v ?? 0).toString().replace(/\./g, '').replace(',', '.')) || 0;
+// ---------------------- helpers ----------------------
+const norm = (s = "") =>
+  String(s).trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-const lerAba = (wb, nome) =>
-  wb.Sheets?.[nome] ? XLSX.utils.sheet_to_json(wb.Sheets[nome]) : [];
+const num = (v) => {
+  if (v == null || v === "") return 0;
+  const s = String(v).replace(/\./g, "").replace(",", ".");
+  const n = Number(s);
+  return Number.isFinite(n) ? n : 0;
+};
 
-const nomeStr = (v) => (v ? String(v).trim() : '');
+const getSheetInsensitive = (wb, wanted) => {
+  const idx = wb.SheetNames.findIndex((n) => norm(n) === norm(wanted));
+  return idx >= 0 ? wb.Sheets[wb.SheetNames[idx]] : null;
+};
+
+const lerAba = (wb, nomeEsperado) => {
+  const sh = getSheetInsensitive(wb, nomeEsperado);
+  return sh ? XLSX.utils.sheet_to_json(sh, { defval: "" }) : [];
+};
+
+const nomeStr = (v) => (v ? String(v).trim() : "");
 
 // ---------- Snapshot ----------
 function getLastSnapshot() {
   try {
-    const snapRaw = localStorage.getItem('lastSnapshot');
+    const snapRaw = localStorage.getItem("lastSnapshot");
     return snapRaw ? JSON.parse(snapRaw) : null;
   } catch {
     return null;
   }
 }
-
 function saveSnapshot(data) {
   try {
-    localStorage.setItem('lastSnapshot', JSON.stringify(data));
+    localStorage.setItem("lastSnapshot", JSON.stringify(data));
   } catch {}
 }
 
-// ---------------------------------------------------------------------
+// -----------------------------------------------------
 
-const UploadRedes = ({ setDados }) => {
+export default function UploadRedes({ setDados }) {
   const [arquivoSelecionado, setArquivoSelecionado] = useState(null);
 
   const handleUpload = async (e) => {
@@ -46,104 +59,139 @@ const UploadRedes = ({ setDados }) => {
     reader.onload = async (event) => {
       try {
         const data = new Uint8Array(event.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
+        const workbook = XLSX.read(data, { type: "array" });
 
-        // Ler abas
-        const instagramRaw = lerAba(workbook, 'INSTAGRAM');
-        const facebookRaw  = lerAba(workbook, 'FACEBOOK');
-        const twitterRaw   = lerAba(workbook, 'TWITTER');
-        const somaSeguidores = lerAba(workbook, 'SOMA SEGUIDORES');
-        const engajadosRaw   = lerAba(workbook, 'PERFIS ENGAJADOS');
-        const publicacoesRaw = lerAba(workbook, 'PUBLICAÇÃO ENGAJADAS'); // 🔥 nova aba
+        // Abas (nova planilha)
+        const rawInstagram = lerAba(workbook, "INSTAGRAM");
+        const rawFacebook  = lerAba(workbook, "FACEBOOK");
+        const rawTwitter   = lerAba(workbook, "TWITTER"); // mantém TWITTER
+        const rawSoma      = lerAba(workbook, "SOMA SEGUIDORES");
+        const rawPubs      = lerAba(workbook, "PUBLICAÇÃO ENGAJADAS");
 
-        // Monta listas base com foto
-        const instagram = instagramRaw.map((linha) => {
-          const nome = nomeStr(linha['SECRETÁRIO']);
-          return {
-            nome,
-            seguidores: num(linha['SEGUIDORES']),
-            foto: fotoPorNome(nome) || '',
-            cargo: '',
-          };
+        console.log("🗂️ Lidas:", {
+          instagram: rawInstagram.length,
+          facebook: rawFacebook.length,
+          twitter: rawTwitter.length,
+          somaSeguidores: rawSoma.length,
+          publicacoes: rawPubs.length,
         });
 
-        const facebook = facebookRaw.map((linha) => {
-          const nome = nomeStr(linha['SECRETÁRIO']);
-          return {
-            nome,
-            seguidores: num(linha['SEGUIDORES']),
-            foto: fotoPorNome(nome) || '',
-            cargo: '',
-          };
-        });
+        // Coluna de nome (tanto nova quanto antiga)
+        const pickNome = (linha) =>
+          nomeStr(
+            linha["SECRETARIAS E AUTARQUIAS"] ??
+              linha["SECRETÁRIO"] ??
+              linha["SECRETARIO"] ??
+              linha["NOME"]
+          );
 
-        const twitter = twitterRaw
-          .map((linha) => {
-            const nome = nomeStr(linha['SECRETÁRIO']);
+        // ---- Arrs p/ processarRedes (formato esperado: "SECRETÁRIO"/"SEGUIDORES")
+        const instaProc = rawInstagram
+          .map((ln) => ({
+            "SECRETÁRIO": pickNome(ln),
+            "SEGUIDORES": num(ln["SEGUIDORES"]),
+          }))
+          .filter((r) => r["SECRETÁRIO"]);
+
+        const faceProc = rawFacebook
+          .map((ln) => ({
+            "SECRETÁRIO": pickNome(ln),
+            "SEGUIDORES": num(ln["SEGUIDORES"]),
+          }))
+          .filter((r) => r["SECRETÁRIO"]);
+
+        const twProc = rawTwitter
+          .map((ln) => ({
+            "SECRETÁRIO": pickNome(ln),
+            "SEGUIDORES": num(ln["SEGUIDORES"]),
+          }))
+          .filter((r) => r["SECRETÁRIO"]);
+
+        // ---- Arrs enriquecidos p/ UI (com foto/nome/seguidores)
+        const toUI = (arr) =>
+          arr.map((r) => ({
+            nome: r["SECRETÁRIO"],
+            seguidores: r["SEGUIDORES"],
+            foto: fotoPorNome(r["SECRETÁRIO"]) || "",
+            cargo: "",
+          }));
+
+        const instaUI = toUI(instaProc);
+        const faceUI  = toUI(faceProc);
+        const twUI    = toUI(twProc);
+
+        // ---- SOMA SEGUIDORES (NOME, SOMA)
+        const somaSeguidores = rawSoma
+          .map((ln) => ({
+            NOME: nomeStr(ln["NOME"]),
+            SOMA: num(ln["SOMA"]),
+          }))
+          .filter((r) => r.NOME);
+
+        // ---- PUBLICAÇÃO ENGAJADAS (com base64 para PDF)
+        const publicacoesEngajadas = await Promise.all(
+          (rawPubs || []).map(async (ln, i) => {
+            // Data pode vir serial do Excel
+            let dataFormatada = "";
+            const d = ln["DATA"];
+            if (d) {
+              if (typeof d === "number") {
+                const baseDate = new Date(1900, 0, d - 1);
+                dataFormatada = baseDate.toLocaleDateString("pt-BR");
+              } else {
+                dataFormatada = String(d).trim();
+              }
+            }
+
+            // Converte imagem para base64 (resolve CORS no React-PDF)
+            const fotoUrl = ln["FOTO"] || "";
+            let fotoFinal = fotoUrl || null;
+            if (fotoUrl) {
+              try {
+                const b64 = await imgToBase64(fotoUrl, 900, 0.85);
+                if (b64) fotoFinal = b64;
+              } catch (err) {
+                console.warn("Falha ao converter imagem para base64:", fotoUrl, err);
+              }
+            }
+
             return {
-              nome,
-              seguidores: num(linha['SEGUIDORES']),
-              foto: fotoPorNome(nome) || '',
-              cargo: '',
+              ITEM: ln["ITEM"] ?? i + 1,
+              NOME: nomeStr(ln["NOME"]),
+              POSICAO: num(ln["POSIÇÃO"] ?? ln["POSICAO"]),
+              FOTO: fotoFinal, // ✅ já em base64 (ou URL se falhar)
+              DATA: dataFormatada,
             };
           })
-          .filter((p) => p.seguidores > 0);
+        );
 
-        // Processa redes sociais
-        const base = processarRedes(instagram, facebook, twitter, somaSeguidores);
+        // ---- Processamento consolidado
+        const base = processarRedes(instaProc, faceProc, twProc, somaSeguidores);
 
-        base.instagram = instagram;
-        base.facebook  = facebook;
-        base.twitter   = twitter;
+        // substitui listas por versões enriquecidas (UI)
+        base.instagram = instaUI;
+        base.facebook  = faceUI;
+        base.twitter   = twUI;
 
-        // 🔥 Processar perfis engajados
-        const engajados = processarEngajados(engajadosRaw);
-        base.perfisEngajados = engajados;
-
-        // 🔥 Processar publicações engajadas (nova seção)
-        const publicacoesEngajadas = publicacoesRaw.map((linha) => {
-          // normaliza DATA
-          let dataFormatada = "";
-          if (linha["DATA"]) {
-            if (typeof linha["DATA"] === "number") {
-              // Excel serial → Date
-              const baseDate = new Date(1900, 0, linha["DATA"] - 1);
-              dataFormatada = baseDate.toLocaleDateString("pt-BR");
-            } else {
-              dataFormatada = String(linha["DATA"]).trim();
-            }
-          }
-
-          return {
-            ITEM: linha['ITEM'],
-            NOME: nomeStr(linha['NOME']),
-            POSICAO: num(linha['POSIÇÃO']),
-            FOTO: linha['FOTO'],
-            DATA: dataFormatada,
-          };
-        });
+        // publicaçoes
         base.publicacoesEngajadas = publicacoesEngajadas;
 
-        // ============== VARIAÇÕES ====================
+        // ---- variações (snapshot)
         const snapshotAnterior = getLastSnapshot();
         const resultado = aplicarVariacoesEmTudo(base, snapshotAnterior || {});
-
-        // garantir que seções extras continuem
-        resultado.perfisEngajados = engajados;
         resultado.publicacoesEngajadas = publicacoesEngajadas;
 
-        // Entrega pro app
+        // entrega + persiste
         setDados(resultado);
-
-        // Persistência
         const json = JSON.stringify(resultado);
-        localStorage.setItem('relatorioSecretarias', json);
-        localStorage.setItem('relatorioRedes', json);
+        localStorage.setItem("relatorioSecretarias", json);
+        localStorage.setItem("relatorioRedes", json);
         saveSnapshot(resultado);
-
       } catch (err) {
-        console.error('Erro ao ler o Excel:', err);
-        alert('Não foi possível processar o arquivo. Confira os nomes das abas e o formato.');
+        console.error("Erro ao ler o Excel:", err);
+        alert(
+          "Não foi possível processar o arquivo. Confira os nomes das abas e o formato."
+        );
       }
     };
 
@@ -162,6 +210,5 @@ const UploadRedes = ({ setDados }) => {
       )}
     </div>
   );
-};
+}
 
-export default UploadRedes;

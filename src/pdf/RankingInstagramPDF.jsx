@@ -13,38 +13,10 @@ const iconesStatus = {
 };
 
 const verificados = [
-  "Fábio Gentil",
-  "Yuri Arruda",
-  "Orleans Brandão",
-  "França do Macaquinho",
-  "Paulo Case Fernandes",
-  "Bira do Pindaré",
-  "Raul Cancian",
-  "Celso Dias",
-  "Leandro Costa",
-  "Abigail Cunha",
-  "Karen Barros",
-  "Adriano Sarney",
-  "Tiago Fernandes",
-  "Cricielle Muniz",
-  "Sebastião Madeira",
-  "Maurício Martins",
-  "Junior Marreca",
-  "Coronel Célio Roberto",
-  "Gabriel Tenorio",
-  "Diego Rolim",
-  "Cassiano Pereira",
-  "Rubens Pereira",
-  "Pedro Chagas",
-  "Natassia Weba",
-  "Sérgio Macedo",
-  "Zé Reinaldo Tavares",
-  "Marcello Dualibe",
-  "Anderson Ferreira",
-  "Vinícius Ferro",
-  "Cauê Aragão",
-  "Alberto Bastos",
-  "Washington Oliveira"
+  "gov-ma","secma","procon","ses",
+  "seduc","detran","iema","emap","cbm",
+  "sedes","sema","setres","senic","saf",
+  "secti","semag",
 ];
 
 const styles = StyleSheet.create({
@@ -56,18 +28,8 @@ const styles = StyleSheet.create({
     fontFamily: "AMSIPRO",
   },
   header: { width: "100%" },
-  footer: {
-    width: "100%",
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-  },
-  legenda: {
-    width: "100%",
-    alignItems: "center",
-    position: "absolute",
-    bottom: 90,
-  },
+  footer: { width: "100%", position: "absolute", bottom: 0, left: 0 },
+  legenda: { width: "100%", alignItems: "center", position: "absolute", bottom: 90 },
   gridContainer: {
     flex: 1,
     justifyContent: "flex-start",
@@ -92,7 +54,6 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     flexGrow: 0,
   },
-
   posicao: {
     fontSize: 9,
     fontWeight: "bold",
@@ -101,26 +62,9 @@ const styles = StyleSheet.create({
     textAlign: "right",
     flexShrink: 0,
   },
-
-  fotoContainer: {
-    position: "relative",
-    marginRight: 6,
-    width: 22,
-    height: 22,
-  },
-  foto: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    objectFit: "cover",
-  },
-  selo: {
-    position: "absolute",
-    bottom: -2,
-    left: -2,
-    width: 12,
-    height: 12,
-  },
+  fotoContainer: { position: "relative", marginRight: 6, width: 22, height: 22 },
+  foto: { width: 22, height: 22, borderRadius: 11, objectFit: "cover" },
+  selo: { position: "absolute", bottom: -2, left: -2, width: 12, height: 12 },
 
   nomeCargo: { flexDirection: "column", maxWidth: 90 },
   nome: { fontSize: 8, fontWeight: "semibold" },
@@ -156,10 +100,9 @@ function corrigirNome(nome = "") {
 // ====== Card
 const CardPessoaPDF = ({ pessoa, posicao }) => {
   if (!pessoa) return null;
-  const isPrimeiro = posicao === 1;
   const iconeStatus = pessoa.status ? iconesStatus[pessoa.status] : null;
 
-  // ✅ Checa verificado de forma acento-insensível (mantendo sua lista original)
+  // ✅ verificado (acento-insensível)
   const isVerificado = verificados
     .map((v) =>
       v.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim()
@@ -172,18 +115,22 @@ const CardPessoaPDF = ({ pessoa, posicao }) => {
         .trim()
     );
 
-  // usar o nome corrigido só para exibir
   const nomeExibicao = corrigirNome(pessoa.nome);
 
+  // 🔸 Estilos especiais para o 1º colocado
+  const isPrimeiro = posicao === 1;
+
+  // 🔁 Novo: abaixo do primeiro (#), a contagem passa a 1º, 2º, 3º...
+  const rotuloPosicao = isPrimeiro ? "#" : `${posicao - 1}º`;
+
+  const bgCard = isPrimeiro ? "#F9C934" : "#E1E1E5";        // amarelo / cinza
+  const bgSeguidores = isPrimeiro ? "#F7933A" : "#52586E";  // laranja / azul-escuro
+  const seguidoresColor = isPrimeiro ? "#000000" : "#FFFFFF";
+
   return (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor:"#E1E1E5" },
-      ]}
-    >
+    <View style={[styles.card, { backgroundColor: bgCard }]}>
       <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Text style={styles.posicao}>{posicao}º</Text>
+        <Text style={styles.posicao}>{rotuloPosicao}</Text>
 
         <View style={styles.fotoContainer}>
           {pessoa.foto && <Image src={pessoa.foto} style={styles.foto} />}
@@ -198,18 +145,10 @@ const CardPessoaPDF = ({ pessoa, posicao }) => {
 
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         {iconeStatus && (
-          <Image
-            src={iconeStatus}
-            style={{ width: 10, height: 10, marginRight: 4 }}
-          />
+          <Image src={iconeStatus} style={{ width: 10, height: 10, marginRight: 4 }} />
         )}
-        <View
-          style={[
-            styles.seguidoresContainer,
-            { backgroundColor:"#52586E" },
-          ]}
-        >
-          <Text style={styles.seguidoresText}>
+        <View style={[styles.seguidoresContainer, { backgroundColor: bgSeguidores }]}>
+          <Text style={[styles.seguidoresText, { color: seguidoresColor }]}>
             {(pessoa?.seguidores ?? 0).toLocaleString("pt-BR")}
           </Text>
         </View>
@@ -250,12 +189,7 @@ const RankingInstagramPDF = ({ dados = [] }) => {
         }));
 
         return (
-          <Page
-            key={pageIndex}
-            size="A4"
-            orientation="landscape"
-            style={styles.page}
-          >
+          <Page key={pageIndex} size="A4" orientation="landscape" style={styles.page}>
             <Image src={headerImg} style={styles.header} />
 
             <View style={styles.gridContainer}>
@@ -264,28 +198,19 @@ const RankingInstagramPDF = ({ dados = [] }) => {
                 return (
                   <View key={i} style={styles.gridLinha}>
                     {linha.esquerda ? (
-                      <CardPessoaPDF
-                        pessoa={linha.esquerda}
-                        posicao={posBase + i + 1}
-                      />
+                      <CardPessoaPDF pessoa={linha.esquerda} posicao={posBase + i + 1} />
                     ) : (
                       <View style={styles.card} />
                     )}
 
                     {linha.centro ? (
-                      <CardPessoaPDF
-                        pessoa={linha.centro}
-                        posicao={posBase + i + 9}
-                      />
+                      <CardPessoaPDF pessoa={linha.centro} posicao={posBase + i + 9} />
                     ) : (
                       <View style={styles.card} />
                     )}
 
                     {linha.direita ? (
-                      <CardPessoaPDF
-                        pessoa={linha.direita}
-                        posicao={posBase + i + 17}
-                      />
+                      <CardPessoaPDF pessoa={linha.direita} posicao={posBase + i + 17} />
                     ) : (
                       <View style={styles.card} />
                     )}

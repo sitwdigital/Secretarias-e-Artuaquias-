@@ -1,3 +1,4 @@
+// src/App.jsx
 import { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
@@ -6,8 +7,7 @@ import Footer from './components/common/Footer';
 import UploadRedes from './components/common/UploadRedes';
 
 import RankingGanhoSeguidores from './components/sections/RankingGanhoSeguidores';
-import RankingPerfisEngajados from './components/sections/RankingPerfisEngajados';
-import SectionPublicacoes from './components/sections/SectionPublicacoes'; // 👈 import novo
+import SectionPublicacoes from './components/sections/SectionPublicacoes';
 import RankingInstagram from './components/sections/RankingInstagram';
 import RankingInstagram2 from './components/sections/RankingInstagram2';
 import RankingFacebook from './components/sections/RankingFacebook';
@@ -117,17 +117,9 @@ const App = ({ modoPrint = false }) => {
             <RankingGanhoSeguidores dados={dadosExcel.rankingGanho} />
           </section>
 
+          {/* Publicações mais engajadas */}
           <section
             ref={(el) => (sectionsRef.current[1] = el)}
-            id="perfis-engajados"
-            className="py-0"
-          >
-            <RankingPerfisEngajados dados={dadosExcel.perfisEngajados} />
-          </section>
-
-          {/* 👇 NOVA SEÇÃO PUBLICAÇÕES ENGAJADAS */}
-          <section
-            ref={(el) => (sectionsRef.current[2] = el)}
             id="publicacoes-engajadas"
             className="py-0"
           >
@@ -135,7 +127,7 @@ const App = ({ modoPrint = false }) => {
           </section>
 
           <section
-            ref={(el) => (sectionsRef.current[3] = el)}
+            ref={(el) => (sectionsRef.current[2] = el)}
             id="instagram1"
             className="py-0"
           >
@@ -143,7 +135,7 @@ const App = ({ modoPrint = false }) => {
           </section>
 
           <section
-            ref={(el) => (sectionsRef.current[4] = el)}
+            ref={(el) => (sectionsRef.current[3] = el)}
             id="instagram2"
             className="py-0"
           >
@@ -151,7 +143,7 @@ const App = ({ modoPrint = false }) => {
           </section>
 
           <section
-            ref={(el) => (sectionsRef.current[5] = el)}
+            ref={(el) => (sectionsRef.current[4] = el)}
             id="facebook"
             className="py-0"
           >
@@ -159,7 +151,7 @@ const App = ({ modoPrint = false }) => {
           </section>
 
           <section
-            ref={(el) => (sectionsRef.current[6] = el)}
+            ref={(el) => (sectionsRef.current[5] = el)}
             id="twitter"
             className="py-0"
           >

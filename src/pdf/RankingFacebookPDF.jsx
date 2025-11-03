@@ -99,16 +99,17 @@ const CardPessoaPDF = ({ pessoa, posicao }) => {
   const isPrimeiro = posicao === 1;
   const iconeStatus = pessoa.status ? iconesStatus[pessoa.status] : null;
 
+  // ✅ 1º mostra "#"; demais começam do 1º (posicao - 1)
+  const rotuloPosicao = isPrimeiro ? "#" : `${posicao - 1}º`;
+  const bgCard = isPrimeiro ? "#F9C934" : "#E1E1E5";       // amarelo / cinza
+  const bgSeguidores = isPrimeiro ? "#F7933A" : "#52586E"; // laranja / azul-escuro
+  const seguidoresColor = isPrimeiro ? "#000000" : "#FFFFFF"; // números pretos no 1º
+
   return (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: "#E1E1E5" },
-      ]}
-    >
+    <View style={[styles.card, { backgroundColor: bgCard }]}>
       {/* Nome + Foto */}
       <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Text style={styles.posicao}>{posicao}º</Text>
+        <Text style={styles.posicao}>{rotuloPosicao}</Text>
         {pessoa.foto && <Image src={pessoa.foto} style={styles.foto} />}
         <View style={styles.nomeCargo}>
           <Text style={styles.nome}>{pessoa.nome}</Text>
@@ -124,13 +125,8 @@ const CardPessoaPDF = ({ pessoa, posicao }) => {
             style={{ width: 10, height: 10, marginRight: 4 }}
           />
         )}
-        <View
-          style={[
-            styles.seguidoresContainer,
-            { backgroundColor: "#52586E" },
-          ]}
-        >
-          <Text style={styles.seguidoresText}>
+        <View style={[styles.seguidoresContainer, { backgroundColor: bgSeguidores }]}>
+          <Text style={[styles.seguidoresText, { color: seguidoresColor }]}>
             {(pessoa?.seguidores ?? 0).toLocaleString("pt-BR")}
           </Text>
         </View>
@@ -152,7 +148,7 @@ const RankingFacebookPDF = ({ dados = [] }) => {
     (a, b) => (b?.seguidores ?? 0) - (a?.seguidores ?? 0)
   );
 
-  // blocos de 24 
+  // blocos de 24
   const blocos = [];
   for (let i = 0; i < ordenados.length; i += 24) {
     blocos.push(ordenados.slice(i, i + 24));

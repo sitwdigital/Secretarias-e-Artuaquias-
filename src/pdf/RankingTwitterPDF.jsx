@@ -52,7 +52,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 18,
     marginHorizontal: 4,
-
     // 🔹 largura fixa para padronizar todos os cards
     width: 230,
     flexShrink: 0,
@@ -99,16 +98,18 @@ const CardPessoaPDF = ({ pessoa, posicao }) => {
   const isPrimeiro = posicao === 1;
   const iconeStatus = pessoa.status ? iconesStatus[pessoa.status] : null;
 
+  // ✅ 1º lugar mostra "#"; a partir do segundo, começa 1º, 2º, 3º...
+  const rotuloPosicao = isPrimeiro ? "#" : `${posicao - 1}º`;
+
+  const bgCard = isPrimeiro ? "#F9C934" : "#E1E1E5";       // amarelo / cinza
+  const bgSeguidores = isPrimeiro ? "#F7933A" : "#52586E"; // laranja / azul-escuro
+  const seguidoresColor = isPrimeiro ? "#000000" : "#FFFFFF";
+
   return (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: "#E1E1E5" },
-      ]}
-    >
+    <View style={[styles.card, { backgroundColor: bgCard }]}>
       {/* Nome + Foto */}
       <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Text style={styles.posicao}>{posicao}º</Text>
+        <Text style={styles.posicao}>{rotuloPosicao}</Text>
         {pessoa.foto && <Image src={pessoa.foto} style={styles.foto} />}
         <View style={styles.nomeCargo}>
           <Text style={styles.nome}>{pessoa.nome}</Text>
@@ -124,13 +125,8 @@ const CardPessoaPDF = ({ pessoa, posicao }) => {
             style={{ width: 10, height: 10, marginRight: 4 }}
           />
         )}
-        <View
-          style={[
-            styles.seguidoresContainer,
-            { backgroundColor: "#52586E" },
-          ]}
-        >
-          <Text style={styles.seguidoresText}>
+        <View style={[styles.seguidoresContainer, { backgroundColor: bgSeguidores }]}>
+          <Text style={[styles.seguidoresText, { color: seguidoresColor }]}>
             {(pessoa?.seguidores ?? 0).toLocaleString("pt-BR")}
           </Text>
         </View>

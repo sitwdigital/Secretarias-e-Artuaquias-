@@ -11,26 +11,22 @@ Font.register({
   src: "/fonts/AMSIPRO-SEMIBOLD.ttf",
 });
 
-// Lista de verificados
+// Lista de verificados (vou atualizar com a sua lista depois)
 const verificados = [
-  "Fábio Gentil","Yuri Arruda","Orleans Brandão","França do Macaquinho",
-  "Abigail Cunha", "Karen Barros","Adriano Sarney","Tiago Fernandes",
-  "Cricielle Muniz","Sebastião Madeira","Maurício Martins","Junior Marreca",
-  "Coronel Célio Roberto","Gabriel Tenorio","Diego Rolim","Cassiano Pereira",
-  "Rubens Pereira","Pedro Chagas","Natassia Weba","Sérgio Macedo",
-  "Zé Reinaldo Tavares","Marcello Dualibe","Anderson Ferreira",
-  "Vinícius Ferro","Cauê Aragão","Alberto Bastos","Washington Oliveira",
-  "Paulo Case Fernandes","Bira do Pindaré","Raul Cancian","Celso Dias",  
-  "Leandro Costa"
+  "gov-ma","secma","procon","ses",
+  "seduc","detran","iema","emap","cbm",
+  "sedes","sema","setres","senic","saf",
+  "secti","semag",
 ];
 
-// Função utilitária: transforma nome em slug -> arquivo
+// Função utilitária: transforma nome em slug -> arquivo (agora em /fotos_secretarias/)
 const nomeParaArquivo = (nome) => {
   if (!nome) return null;
-  return "/fotos_secretarios/" +
+  return "/fotos_secretarias/" +
     nome
       .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove acentos
       .toLowerCase()
+      .trim()
       .replace(/\s+/g, "-") +
     ".jpg";
 };

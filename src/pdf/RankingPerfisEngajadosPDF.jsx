@@ -1,18 +1,10 @@
 // src/pdf/RankingPerfisEngajadosPDF.jsx
 import { Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
+import { fotoPorNome } from "../utils/fotoCatalog"; // ⟵ usa o catálogo para achar a imagem
 
 const headerImg = "/pdf-assets/Perfismaisengajados.png";
 const footerImg = "/pdf-assets/footer_Relatorio.png";
-const iconInsta = "/pdf-assets/instagram.png";
-
-const normalizarNome = (nome) =>
-  nome
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "-");
-
-const getFotoPath = (nome) => `/fotos_secretarios/${normalizarNome(nome)}.jpg`;
+const iconInsta  = "/pdf-assets/instagram.png";
 
 const styles = StyleSheet.create({
   page: {
@@ -36,7 +28,7 @@ const styles = StyleSheet.create({
   chartWrapper: {
     marginHorizontal: 40,
     marginTop: 40,
-    flexDirection: "row", // eixo Y ao lado
+    flexDirection: "row",
   },
 
   chartArea: {
@@ -44,7 +36,7 @@ const styles = StyleSheet.create({
     height: 200,
     borderLeft: "1pt solid #ccc",
     borderBottom: "1pt solid #ccc",
-    position: "relative", // necessário para nomes absolute
+    position: "relative",
   },
   gridLine: {
     position: "absolute",
@@ -59,10 +51,8 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     marginRight: 4,
   },
-  yLabel: {
-    fontSize: 8,
-    color: "#444",
-  },
+  yLabel: { fontSize: 8, color: "#444" },
+
   plotArea: {
     flex: 1,
     flexDirection: "row",
@@ -85,10 +75,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#F77737",
     borderRadius: 6,
   },
+
   nomeRow: {
-    position: "absolute", 
-    bottom: -20,          
-    left: 0,             
+    position: "absolute",
+    bottom: -20,
+    left: 0,
     right: 0,
     flexDirection: "row",
   },
@@ -146,10 +137,11 @@ const RankingPerfisEngajadosPDF = ({ dados = [] }) => {
           {/* Barras */}
           <View style={styles.plotArea}>
             {engajados.map((p, i) => {
-              const fotoPath = getFotoPath(p.nome);
+              // 🔎 pega a foto pelo catálogo; se não achar, usa ícone padrão
+              const fotoUrl = fotoPorNome(p.nome) || iconInsta;
               return (
                 <View key={i} style={styles.barWrapper}>
-                  <Image src={fotoPath || iconInsta} style={styles.foto} />
+                  <Image src={fotoUrl} style={styles.foto} />
                   <View
                     style={[
                       styles.bar,
@@ -164,7 +156,7 @@ const RankingPerfisEngajadosPDF = ({ dados = [] }) => {
           {/* Nomes (absolute) */}
           <View style={styles.nomeRow}>
             {engajados.map((p, i) => {
-              const partes = p.nome.split(" ");
+              const partes = (p.nome || "").split(" ");
               const primeiro = partes[0];
               const sobrenome = partes.slice(1).join(" ");
               return (
@@ -178,10 +170,10 @@ const RankingPerfisEngajadosPDF = ({ dados = [] }) => {
         </View>
       </View>
 
-      {/* 🔥 Texto explicativo abaixo do gráfico */}
       <Text style={styles.descricao}>
-        Engajamento nas redes sociais é a interação ativa dos seguidores com seu conteúdo, 
-        como curtidas, comentários, compartilhamentos e mensagens, que mostram envolvimento e interesse.
+        Engajamento nas redes sociais é a interação ativa dos seguidores com seu
+        conteúdo, como curtidas, comentários, compartilhamentos e mensagens,
+        que mostram envolvimento e interesse.
       </Text>
 
       <Image src={footerImg} style={styles.footer} />
