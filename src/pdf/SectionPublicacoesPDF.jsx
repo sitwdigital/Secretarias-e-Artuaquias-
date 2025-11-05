@@ -1,5 +1,6 @@
 // src/pdf/SectionPublicacoesPDF.jsx
 import { Page, View, Text, Image, StyleSheet, Font } from "@react-pdf/renderer";
+import { slugifyNome } from "../utils/fotoCatalog"; // ✅ usa o mesmo slug do catálogo
 
 // header/footer
 const headerImg = "/pdf-assets/header_Relatorio_Melhores.png";
@@ -11,24 +12,30 @@ Font.register({
   src: "/fonts/AMSIPRO-SEMIBOLD.ttf",
 });
 
-// Lista de verificados (vou atualizar com a sua lista depois)
+// Lista de verificados (slug / apelidos)
 const verificados = [
-  "gov-ma","secma","procon","ses",
-  "seduc","detran","iema","emap","cbm",
-  "sedes","sema","setres","senic","saf",
-  "secti","semag",
+  "gov-ma", "secma", "procon", "ses",
+  "seduc", "detran", "iema", "emap", "cbm",
+  "sedes", "sema", "setres", "senic", "saf",
+  "secti", "semag", "sema", "setres", "seinc", "cbm", 
 ];
+
+// ✅ pré-calcula em formato slug, usando a mesma regra
+const verificadosSlug = verificados.map((v) => slugifyNome(v));
 
 // Função utilitária: transforma nome em slug -> arquivo (agora em /fotos_secretarias/)
 const nomeParaArquivo = (nome) => {
   if (!nome) return null;
-  return "/fotos_secretarias/" +
+  return (
+    "/fotos_secretarias/" +
     nome
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove acentos
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // remove acentos
       .toLowerCase()
       .trim()
       .replace(/\s+/g, "-") +
-    ".jpg";
+    ".jpg"
+  );
 };
 
 const styles = StyleSheet.create({
@@ -124,18 +131,25 @@ const SectionPublicacoesPDF = ({ dados = [] }) => {
   return (
     <Page size="A4" orientation="landscape" style={styles.page}>
       <Image src={headerImg} style={styles.header} />
+
       {/*  Título */}
       <Text style={styles.title}>Publicações mais engajadas no Instagram</Text>
 
       <View style={styles.blocao}>
         {dadosOrdenados.slice(0, 5).map((item, index) => {
           const perfilFoto = nomeParaArquivo(item?.NOME);
-          const isVerificado = verificados.includes(item?.NOME);
+
+          // ✅ verifica usando slugifyNome, igual no RankingInstagram
+          const slugNome = slugifyNome(item?.NOME || "");
+          const isVerificado = verificadosSlug.includes(slugNome);
 
           return (
             <View key={index} style={styles.item}>
               <View style={styles.perfilContainer}>
-                <Image src={perfilFoto || "/placeholder.png"} style={styles.perfilFoto} />
+                <Image
+                  src={perfilFoto || "/placeholder.png"}
+                  style={styles.perfilFoto}
+                />
                 {isVerificado && (
                   <Image src={seloVerificado} style={styles.selo} />
                 )}
@@ -146,7 +160,10 @@ const SectionPublicacoesPDF = ({ dados = [] }) => {
               </Text>
 
               <View style={styles.fotoContainer}>
-                <Image src={item?.FOTO || "/placeholder.png"} style={styles.foto} />
+                <Image
+                  src={item?.FOTO || "/placeholder.png"}
+                  style={styles.foto}
+                />
                 {item?.DATA && (
                   <Text style={styles.dataOverlay}>{item.DATA}</Text>
                 )}

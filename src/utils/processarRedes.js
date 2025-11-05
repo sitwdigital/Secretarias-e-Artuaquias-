@@ -33,10 +33,10 @@ export default function processarRedes(insta = [], face = [], tw = [], somaSegui
 
   // Lista fixa de verificados (já normalizada)
   const verificados = [
-  "gov-ma","secma","procon","ses",
-  "seduc","detran","iema","emap","cbm",
-  "sedes","sema","setres","senic","saf",
-  "secti","semag",
+  "gov-ma", "secma", "procon", "ses",
+  "seduc", "detran", "iema", "emap", "cbm",
+  "sedes", "sema", "setres", "senic", "saf",
+  "secti", "semag", "sema", "setres", "seinc", "cbm",
   ].map(normalizarNome);
 
   // acumula seguidores por rede para o nome

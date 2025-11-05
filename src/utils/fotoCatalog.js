@@ -6,7 +6,7 @@ const imported1 = import.meta.glob('../assets/fotos/*.{png,jpg,jpeg,webp,svg}', 
   as: 'url',
 });
 
-// 2) (Opcional) Também busca em src/assets/fotos_secretarias, caso você prefira manter nessa pasta dentro de src
+// 2) (Opcional) Também busca em src/assets/fotos_secretarias
 const imported2 = import.meta.glob('../assets/fotos_secretarias/*.{png,jpg,jpeg,webp,svg}', {
   eager: true,
   as: 'url',
@@ -19,8 +19,8 @@ export function slugifyNome(str = '') {
     .replace(/[\u0300-\u036f]/g, '') // tira acentos
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]+/g, '-')     // troca tudo por hífen
-    .replace(/(^-|-$)/g, '');        // trim de hífens
+    .replace(/[^a-z0-9]+/g, '-')     // troca tudo que não é letra/número por hífen
+    .replace(/(^-|-$)/g, '');        // remove hífen no começo/fim
 }
 
 // cria um único mapa com tudo que o Vite empacotar
@@ -41,11 +41,11 @@ addToMap(imported2);
 // ex.: "franca-do-macaquinho" usa a mesma foto de "franca"
 const ALIASES = {
   'cbm-ma': 'cbm',
-  'DEFESA CIVIL': 'defesa-civil',
-  'GOV MA': 'gov-ma',
-  'POLÍCIA CIVIL': 'policia-civil',
-  'CASA DA MULHER': 'casa-da-mulher',
-  'SHOPPING DA CRIANÇA': 'shopping-da-crianca',
+  'defesa-civil': 'defesa-civil',
+  'gov-ma': 'gov-ma',
+  'policia-civil': 'policia-civil',
+  'casa-da-mulher': 'casa-da-mulher',
+  'shopping-da-crianca': 'shopping-da-crianca',
 };
 
 export function fotoPorNome(nome) {

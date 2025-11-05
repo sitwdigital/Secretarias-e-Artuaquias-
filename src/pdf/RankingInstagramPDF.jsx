@@ -1,5 +1,6 @@
 // src/pdf/RankingInstagramPDF.jsx
 import { Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
+import { slugifyNome } from "../utils/fotoCatalog"; // ✅ usa o mesmo slug do catálogo de fotos
 
 const headerImg = "/pdf-assets/header_Relatorio_Insta.png";
 const footerImg = "/pdf-assets/footer_Relatorio.png";
@@ -86,14 +87,23 @@ const styles = StyleSheet.create({
   },
 });
 
-// 🔹 Corrige apenas a exibição do nome (ex.: "Franca..." -> "França...")
+// 🔹 Corrige apenas a exibição do nome
 function corrigirNome(nome = "") {
   const norm = nome
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .trim();
+
+  // França do Macaquinho
   if (norm === "franca do macaquinho") return "França do Macaquinho";
+
+  // CERIMONIAL DO GOVERNO -> força quebra em duas linhas
+  const normSemPontuacao = norm.replace(/[^a-z\s]/g, "");
+  if (normSemPontuacao === "cerimonial do governo") {
+    return "CERIMONIAL\nDO GOVERNO";
+  }
+
   return nome;
 }
 
@@ -102,25 +112,17 @@ const CardPessoaPDF = ({ pessoa, posicao }) => {
   if (!pessoa) return null;
   const iconeStatus = pessoa.status ? iconesStatus[pessoa.status] : null;
 
-  // ✅ verificado (acento-insensível)
-  const isVerificado = verificados
-    .map((v) =>
-      v.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim()
-    )
-    .includes(
-      (pessoa.nome || "")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .trim()
-    );
+  // ✅ verificado: compara por slug (mesma regra do fotoCatalog)
+  const slugNome = slugifyNome(pessoa.nome || "");
+  const verificadosSlug = verificados.map((v) => slugifyNome(v));
+  const isVerificado = verificadosSlug.includes(slugNome);
 
   const nomeExibicao = corrigirNome(pessoa.nome);
 
   // 🔸 Estilos especiais para o 1º colocado
   const isPrimeiro = posicao === 1;
 
-  // 🔁 Novo: abaixo do primeiro (#), a contagem passa a 1º, 2º, 3º...
+  // 🔁 Abaixo do primeiro (#), a contagem passa a 1º, 2º, 3º...
   const rotuloPosicao = isPrimeiro ? "#" : `${posicao - 1}º`;
 
   const bgCard = isPrimeiro ? "#F9C934" : "#E1E1E5";        // amarelo / cinza
