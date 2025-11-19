@@ -46,7 +46,8 @@ const ALIASES = {
   'policia-civil': 'policia-civil',
   'casa-da-mulher': 'casa-da-mulher',
   'shopping-da-crianca': 'shopping-da-crianca',
-  'pmma': 'pmma'
+  'pmma': 'pmma',
+  'ssp': 'ssp'
 };
 
 export function fotoPorNome(nome) {
