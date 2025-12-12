@@ -14,10 +14,10 @@ const iconesStatus = {
 };
 
 const verificados = [
-  "gov-ma","secma","procon","ses",
-  "seduc","detran","iema","emap","cbm",
-  "sedes","sema","setres","senic","saf",
-  "secti","semag",
+  "gov-ma", "secma", "procon", "ses",
+  "seduc", "detran", "iema", "emap", "cbm",
+  "sedes", "sema", "setres", "senic", "saf",
+  "secti", "semag",
 ];
 
 const styles = StyleSheet.create({
@@ -102,6 +102,11 @@ function corrigirNome(nome = "") {
   const normSemPontuacao = norm.replace(/[^a-z\s]/g, "");
   if (normSemPontuacao === "cerimonial do governo") {
     return "CERIMONIAL\nDO GOVERNO";
+  }
+
+  // SHOPPING DA CRIANÇA -> força quebra em duas linhas
+  if (normSemPontuacao === "shopping da crianca") {
+    return "SHOPPING\nDA CRIANÇA";
   }
 
   return nome;
