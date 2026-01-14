@@ -40,7 +40,6 @@ addToMap(imported2);
 // Aliases opcionais (nomes “estranhos” => arquivo)
 // ex.: "franca-do-macaquinho" usa a mesma foto de "franca"
 const ALIASES = {
-  'cbm/ma': 'cbm',
   'defesa-civil': 'defesa-civil',
   'gov-ma': 'gov-ma',
   'policia-civil': 'policia-civil',
