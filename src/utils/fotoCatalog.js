@@ -13,14 +13,17 @@ const imported2 = import.meta.glob('../assets/fotos_secretarias/*.{png,jpg,jpeg,
 });
 
 // normaliza "Orléans Brandão" -> "orleans-brandao"
-export function slugifyNome(str = '') {
+export function slugifyNome(str = "") {
   return String(str)
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // tira acentos
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // tira acentos
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]+/g, '-')     // troca tudo que não é letra/número por hífen
-    .replace(/(^-|-$)/g, '');        // remove hífen no começo/fim
+    .replace(/[\/\\]/g, "-")         // ✅ troca "/" e "\" por hífen
+    .replace(/[^a-z0-9- ]/g, "")     // ✅ remove pontuação (mantém espaço e hífen)
+    .replace(/\s+/g, "-")            // ✅ espaços -> hífen
+    .replace(/-+/g, "-")             // ✅ evita "--" repetidos
+    .replace(/(^-|-$)/g, "");        // remove hífen no começo/fim
 }
 
 // cria um único mapa com tudo que o Vite empacotar

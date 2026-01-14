@@ -23,19 +23,11 @@ const verificados = [
 // ✅ pré-calcula em formato slug, usando a mesma regra
 const verificadosSlug = verificados.map((v) => slugifyNome(v));
 
-// Função utilitária: transforma nome em slug -> arquivo (agora em /fotos_secretarias/)
+// Função utilitária: transforma nome em slug -> arquivo (em /fotos_secretarias/)
 const nomeParaArquivo = (nome) => {
   if (!nome) return null;
-  return (
-    "/fotos_secretarias/" +
-    nome
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "") // remove acentos
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, "-") +
-    ".jpg"
-  );
+  const slug = slugifyNome(nome); // ✅ mesma regra do catálogo (trata "/" etc.)
+  return `/fotos_secretarias/${slug}.jpg`;
 };
 
 const styles = StyleSheet.create({
